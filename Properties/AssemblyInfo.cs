@@ -1,12 +1,13 @@
-﻿using System.Reflection;
-using System.Runtime.CompilerServices;
+﻿using System;
+using System.Reflection;
 using System.Runtime.InteropServices;
-
+using APG_Predictor;
 using MelonLoader;
+
 // ...
-[assembly: MelonInfo(typeof(APG_Predictor.PredictorMod), "APG Predictor", "0.5.0", "ZoutigeWolf")]
+[assembly: MelonInfo(typeof(PredictorMod), "APG Predictor", "0.5.0", "ZoutigeWolf")]
 [assembly: MelonGame("RoarkInc", "raot")]
-[assembly: MelonColor(System.ConsoleColor.DarkRed)]
+[assembly: MelonColor(ConsoleColor.DarkRed)]
 
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information

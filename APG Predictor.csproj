@@ -60,14 +60,6 @@
     <Reference Include="UnityEngine.InputLegacyModule">
       <HintPath>..\..\..\..\..\RAOT Modded\raot 1.786\MelonLoader\Managed\UnityEngine.InputLegacyModule.dll</HintPath>
     </Reference>
-    <Reference Include="UnityEngine.TextRenderingModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null" />
-    <Reference Include="UnityEngine.UI, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>D:\Games\RAoT\MelonLoader\Managed\UnityEngine.UI.dll</HintPath>
-    </Reference>
-    <Reference Include="UniverseLib.IL2CPP">
-      <HintPath>D:\Games\RAoT\UserLibs\UniverseLib.IL2CPP.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="TrackedObject.cs" />

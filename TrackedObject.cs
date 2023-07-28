@@ -1,21 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 using MelonLoader;
-using UnhollowerRuntimeLib;
 using UnityEngine;
-
-using Player.Cameras;
 
 namespace APG_Predictor
 {
     [RegisterTypeInIl2Cpp]
     public class TrackedObject : MonoBehaviour
     {
-        public TrackedObject(IntPtr ptr) : base(ptr) { }
+        public TrackedObject(IntPtr ptr) : base(ptr)
+        {
+        }
 
         public GameObject Player { get; set; }
 
@@ -33,7 +27,6 @@ namespace APG_Predictor
             }
             catch
             {
-                
             }
         }
 
@@ -45,9 +38,9 @@ namespace APG_Predictor
                 Vector3 dir = (transform.position - LastFramePos).normalized * speed;
 
                 float distance = Vector3.Distance(Player.transform.position, transform.position);
-                float bulletTravelTime = distance / 70f;
+                var bulletTravelTime = distance / 70f;
 
-                Vector3 predictedPos = (dir * bulletTravelTime) + transform.position;
+                Vector3 predictedPos = dir * bulletTravelTime + transform.position;
 
                 return predictedPos;
             }

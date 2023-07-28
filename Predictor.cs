@@ -1,27 +1,23 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+﻿using System.Collections.Generic;
 using MelonLoader;
+using Player.Cameras;
 using UnityEngine;
 
-using Player.Cameras;
+using AoTNetworking.Clients;
+using AoTNetworking.Players;
 
 namespace APG_Predictor
 {
     public class PredictorMod : MelonMod
     {
-        int ownerID = 0;
-        GameObject player = null;
+        private CameraControlBase camera;
+        private int ownerID;
+        private MilitaryRegiment team;
+        private GameObject player = null;
 
-        float range = 50f;
+        private float range = 50f;
 
-        CameraControlBase camera;
-
-        List<TrackedObject> trackedPlayers = new List<TrackedObject>();
+        private readonly List<TrackedObject> trackedPlayers = new List<TrackedObject>();
 
         public override void OnApplicationStart()
         {
@@ -56,12 +52,9 @@ namespace APG_Predictor
                 return;
             }
 
-            TrackedObject enemy = GetClosestEnemy();
+            var enemy = GetClosestEnemy();
 
-            if (enemy == null)
-            {
-                return;
-            }
+            if (enemy == null) return;
 
             float distance = Vector3.Distance(player.transform.position, enemy.transform.position);
 
@@ -74,45 +67,40 @@ namespace APG_Predictor
                     Vector3 dir = (predictedPos - camera.transform.position).normalized;
 
                     if (Input.GetKey(KeyCode.LeftAlt))
-                    {
                         if (camera != null)
                         {
                             Vector3 rotation = Quaternion.LookRotation(dir).eulerAngles;
-                            
-                            if (rotation.x > 90f)
-                            {
-                                rotation.x -= 360f;
-                            }
+
+                            if (rotation.x > 90f) rotation.x -= 360f;
 
                             typeof(CameraControlBase).GetProperty("targetEuler").SetValue(camera, rotation, null);
                         }
-                    }
                 }
             }
         }
 
-        void SetupTrackers()
+        private void SetupTrackers()
         {
-            if (player == null)
-            {
-                return;
-            }
+            if (player == null) return;
 
             trackedPlayers.Clear();
 
             foreach (GameObject obj in GameObject.FindGameObjectsWithTag("Player"))
             {
-                if (obj.Equals(player))
+                if (obj.Equals(player)) continue;
+
+                MirrorNetworkedPlayer mnp = obj.GetComponent<MirrorNetworkedPlayer>();
+                MirrorClientObject mco = mnp.OwnerClient;
+                MilitaryRegiment mr = mco.SyncTeam;
+
+                if (mr == team)
                 {
                     continue;
                 }
 
                 TrackedObject tracker = obj.GetComponent<TrackedObject>();
 
-                if (tracker == null)
-                {
-                    tracker = obj.AddComponent<TrackedObject>();
-                }
+                if (tracker == null) tracker = obj.AddComponent<TrackedObject>();
 
                 tracker.Player = player;
 
@@ -120,42 +108,34 @@ namespace APG_Predictor
             }
         }
 
-        void CheckTrackers()
+        private void CheckTrackers()
         {
-            for (int i = 0; i < trackedPlayers.Count; i++)
-            {
+            for (var i = 0; i < trackedPlayers.Count; i++)
                 if (trackedPlayers[i] == null)
-                {
                     trackedPlayers.RemoveAt(i);
-                }
-            }
         }
 
-        void UpdateTrackers()
+        private void UpdateTrackers()
         {
-            foreach (TrackedObject tracker in trackedPlayers)
-            {
-                tracker.OnUpdate();
-            }
+            foreach (var tracker in trackedPlayers) tracker.OnUpdate();
         }
 
-        int GetOwnerId()
+        private int GetOwnerId()
         {
             GameObject clients = GameObject.Find("ClientObjects");
 
-            if (clients == null)
-            {
-                return 0;
-            }
+            if (clients == null) return 0;
 
             foreach (var child in GameObject.Find("ClientObjects").transform)
             {
                 GameObject client = child.Cast<Transform>().gameObject;
 
-                AoTNetworking.Clients.MirrorClientObject mirror = client.GetComponent<AoTNetworking.Clients.MirrorClientObject>();
+                AoTNetworking.Clients.MirrorClientObject mirror =
+                    client.GetComponent<AoTNetworking.Clients.MirrorClientObject>();
 
                 if (mirror.IsOwner)
                 {
+                    team = mirror.SyncTeam;
                     return (int)mirror.Id;
                 }
             }
@@ -163,42 +143,32 @@ namespace APG_Predictor
             return 0;
         }
 
-        GameObject GetPlayerObject()
+        private GameObject GetPlayerObject()
         {
             foreach (GameObject player in GameObject.FindGameObjectsWithTag("Player"))
-            {
                 if (player.GetComponent<AoTNetworking.Players.MirrorNetworkedPlayer>().NetworkSyncOwnerId == ownerID)
-                {
                     return player;
-                }
-            }
 
             return null;
         }
 
-        CameraControlBase GetCamera()
+        private CameraControlBase GetCamera()
         {
             GameObject playerCam = GameObject.Find("player_camera(Clone)");
 
-            if (playerCam == null)
-            {
-                return null;
-            }
+            if (playerCam == null) return null;
 
             return playerCam.GetComponent<Player.Cameras.CameraControlBase>();
         }
 
-        TrackedObject GetClosestEnemy()
+        private TrackedObject GetClosestEnemy()
         {
             TrackedObject closestEnemy = null;
-            float currentDistance = 10000000000000f;
+            var currentDistance = 10000000000000f;
 
-            foreach (TrackedObject enemy in trackedPlayers)
+            foreach (var enemy in trackedPlayers)
             {
-                if (enemy.GetComponent<AoTNetworking.Players.MirrorNetworkedPlayer>().SyncOwnerId == ownerID)
-                {
-                    continue;
-                }
+                if (enemy.GetComponent<AoTNetworking.Players.MirrorNetworkedPlayer>().SyncOwnerId == ownerID) continue;
 
                 Vector3 diff = enemy.transform.position - player.transform.position;
                 float dist = diff.magnitude;
